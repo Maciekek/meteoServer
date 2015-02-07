@@ -7,7 +7,6 @@
   "devDependencies": {
     "express": "*",
     "http-server": "*",
-    "q":"*",
     "fs":"*",
     "angularjs":"*"
   }
