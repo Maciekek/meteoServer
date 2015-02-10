@@ -1,125 +1,97 @@
 'use strict';
-
 var express = require('express');
 var app = express();
 var httpServer = require("http").createServer(app);
-
 var fs = require('fs');
-var names = [];
-var data = {
-	'names': []
-};
-var allTemperaturesOne = [
+var config = require('./serwerApp/configData.js');
+
+app.use(express.static(__dirname + '/app'));
+
+var temperatures = [
+	[],
 	[],
 	[],
 	[],
 	[]
 ];
 
-var time;
+var getIntervalTime = function() {
+	var intervalTime = config.getIntervalTime();
+	console.log("Interval Value: " + intervalTime);
+	return intervalTime;
+};
 
-app.use(express.static(__dirname + '/app'));
+var getThermometers = function() {
+	var thermometers = config.getThermometers();
+	return thermometers;
+};
 
+var extractTemp = function(tempData) {
+	var reg = /t=\d*/
+	var temp = reg.exec(tempData)[0];
+	var temp;
 
-var getNamesConfing = function() {
+	temp = temp.slice(2, 7);
+	var actualTemp = temp.slice(0, 2) + "." + temp.slice(2, 6);
 
-	var config = fs.readFileSync('./confing.json', "UTF-8");
+	console.log("actualTemp: " + actualTemp);
+	return actualTemp;
 
-	config = JSON.parse(config);
-	names = config.names;
-	time = config.time * 1000;
-	console.log("Interwał: " + time);
+}
+
+var readNewTemp = function(tempPath) {
+	var actualTemp;
+	console.log(tempPath);
+	var tempData = fs.readFileSync(tempPath, "UTF-8");
+
+	return extractTemp(tempData);
+
+}
+
+var ThermometersMain = function() {
+	var actualTemp;
+	var thermometers = getThermometers()
+
+	setInterval(function() {
+		for (var i = 0; i < thermometers.length; i++) {
+			console.log("actual Termomether: ");
+			console.log(thermometers[i]);
+			actualTemp = readNewTemp(thermometers[i].path);
+			console.log(temperatures);
+
+			temperatures[i].push(parseInt(actualTemp));
+			console.log(temperatures[i]);
+		}
+
+	}, getIntervalTime())
+
 }();
+
+
 
 httpServer.listen(3000, function() {
 	console.log('Express server listening on port ' + 3000);
 
 });
 
-
-
-var extractTemperature = function(temps) {
-	if(!temps){
-		return;
-	}
-	var temperatures = temps.split("      ");
-	temperatures = temperatures.slice(1, temperatures.length);
-	return temperatures;
-
-}
-
-var getLastRecord = function(array) {
-	
-	if(array[array.length - 1].length==0)
-	{
-		return array[array.length - 2];	
-	}
-	else {
-		return array[array.length - 1];		
-	}
-}
-
-var getTemperature = function() {
-	var array = fs.readFileSync('./temp.txt').toString().split("\n");
-	var actualtemperatureRecord = getLastRecord(array);
-
-	actualtemperatureRecord = extractTemperature(actualtemperatureRecord);
-
-	var temperatureWithNames = {};
-
-	for (var i = 0; i < actualtemperatureRecord.length; i++) {
-		temperatureWithNames[i] = {
-			"name": names[i],
-			"temperature": actualtemperatureRecord[i]
-		}
-	};
-
-
-	return temperatureWithNames;
-
-}
-
-var getNewTemperatureToList = function() {
-	var array = fs.readFileSync('./temp.txt').toString().split("\n");
-	var actualtemperatureRecord = getLastRecord(array);
-
-	actualtemperatureRecord = extractTemperature(actualtemperatureRecord);
-	
-
-	for (var i = 0; i < 4; i++) {
-		data['names'][i] = names[i];
-		try {
-			var temp = actualtemperatureRecord[i].match(/\d*/g)[0];
-			allTemperaturesOne[i]
-			allTemperaturesOne[i].push(parseInt(temp));
-			console.log("OK")
-		}catch(ex){
-			console.log("Program nie może odczytać danych z pliku! Być może plik jest pusty, lub zmieniło się formatowanie tekstu");
-		}
-
-	}
-}
-
-
-setInterval(function() {
-	getNewTemperatureToList()
-}, time);
-
 app.get('/', function(req, res) {
 	var temperature = getTemperature();
-	//res.send(temperature);
+
 	res.sendfile('./app/index.html');
 });
 
 app.get('/getTemperature', function(req, res) {
-	var temperature = getTemperature();
-	data.list = allTemperaturesOne;
-	res.send(data);
+	res.send(temperatures);
 })
+app.get('/getActualTemperature', function(req, res) {
+	var thermometers = getThermometers()
+	var actualTemp = [];
+	for (var i = 0; i < thermometers.length; i++) {
 
-app.get('/getTemperatureData', function(req, res) {
-	var temperature = getTemperature();
+		actualTemp[i] = readNewTemp(thermometers[i].path);
+		actualTemp[i] = thermometers[i].name + ": " + actualTemp[i];
+	}
 
-	res.send(temperature);
+	res.send(actualTemp);
 
 })

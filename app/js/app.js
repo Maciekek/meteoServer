@@ -8,7 +8,8 @@ app.controller('mainCtrl', ['$scope', '$http',
 	function($scope, $http) {
 		console.log("test");
 		var test1;
-		$http.get("/getTemperatureData").success(function(temps) {
+		$http.get("/getActualTemperature").success(function(temps) {
+			console.log("temps");
 			console.log(temps);
 			$scope.temps = temps;
 		});
@@ -41,17 +42,20 @@ app.controller('mainCtrl', ['$scope', '$http',
 					borderWidth: 0
 				},
 				series: [{
-					name: temps.names[0],
-					data: temps.list[0]
+					name: "temps.names[0]",
+					data: temps[0]
 				}, {
-					name: temps.names[1],
-					data: temps.list[1]
+					name: "temps.names[1]",
+					data: temps[1]
 				}, {
-					name: temps.names[2],
-					data: temps.list[2]
+					name: "temps.names[2]",
+					data: temps[2]
 				}, {
-					name: temps.names[3],
-					data: temps.list[3]
+					name: "temps.names[3]",
+					data: temps[3]
+				}, {
+					name: "temps.names[4]",
+					data: temps[4]
 				}]
 			});
 

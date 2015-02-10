@@ -1,0 +1,17 @@
+{
+	"thermometersInfo": [
+		{"name": "góra",
+		"path":"./testTemp/temp.txt"},
+		{"name": "dól",
+		"path":"./testTemp/temp.txt"},
+		{"name": "dwór",
+		"path":"./testTemp/temp.txt"},
+		{"name": "spaliny",
+		"path":"./testTemp/temp.txt"},
+		{"name": "zasilanie",
+		"path":"./testTemp/temp.txt"}
+	],
+	"interval":60000
+
+
+}
